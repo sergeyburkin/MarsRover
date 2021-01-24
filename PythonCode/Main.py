@@ -8,7 +8,6 @@ import numpy as np
 import random
 
 
-
 # Путь до файла json. Возвращает данные json файла (словарь)
 def path_to_data(path):
     with open(path, "r") as read_file:
@@ -124,6 +123,8 @@ def json_data_with_path(json_data, MAX_CHARGE=100): # Принимает дан�
                 dist[x][y][c] = dist[curX][curY][curC] + 1
                 how_got[x][y][c] = key
                 queue.append(next)
+    json_data['path'] = 'NOT_FOUND'
+    return json_data
 
 
 # По данным json файла (словарю) возвращает изображение (np.array) карты
@@ -173,6 +174,8 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
         commands_list = json_data['path']
     else:
         commands_list = json_data_with_path(json_data)['path']
+    if commands_list == 'NOT_FOUND':
+        return 'NOT_FOUND'
     map_of_nums = json_data['map']['data']
     map_of_nums = np.array(map_of_nums)
     
@@ -241,8 +244,11 @@ def save_map_image(json_data, path_to_save):
 
 # По данным json файла (словарю) сохраняет изображение карты с путем Марсохода в указанный путь
 def save_map_image_with_path(json_data, path_to_save):
-    result = Image.fromarray((get_map_image_with_path(json_data) * 255).astype(np.uint8))
-    result.save(path_to_save)
+    try:
+        result = Image.fromarray((get_map_image_with_path(json_data) * 255).astype(np.uint8))
+        result.save(path_to_save)
+    except:
+        return 'NOT_FOUND'
 
 
 # По заданной высоте и длине генерирует новую карту
@@ -297,7 +303,8 @@ def get_cost_from_json(json_data,
             # type == 5 or type == 6
             return MOVE_ENERGY
 
-
+        if path == 'NOT_FOUND':
+            return 'NOT_FOUND'
         x = start_x
         y = start_y
         spent_energy = 0
