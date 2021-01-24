@@ -16,6 +16,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
             integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
             crossorigin="anonymous"></script>
+    <script src="js/jquery.js"></script>
     <link rel="canonical" href="https://getbootstrap.com/docs/4.4/examples/cover/">
 
     <!-- Bootstrap core CSS -->
@@ -73,13 +74,14 @@
         }
     </style>
     <script>
+        const HOST = "http://localhost:8080";
         var start_x = undefined
         var start_y = undefined
         var finish_x = undefined
         var finish_y = undefined
         var map = undefined
         var drawSprite = 2
-        const textures = ["rock.jpg", "stone.png", "sand.jpg", "shadow_sand.jpg", "dirt.png", "shadow_dirt.png", "start.png", "finish.png"]
+        const textures = ["1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "start.png", "finish.png"]
 
 
         function findInMap(element) {
@@ -152,17 +154,21 @@
         }
 
         function resetStartButton() {
-            var image = document.getElementsByName(start_y.toString() + start_x.toString())[0].lastChild;
-            image.setAttribute("src", textures[map[start_y][start_x] - 1]);
-            start_x = undefined;
-            start_y = undefined;
+            if (start_x !== undefined) {
+                var image = document.getElementsByName(start_x.toString() + start_y.toString())[0].lastChild;
+                image.setAttribute("src", textures[map[start_x][start_y] - 1]);
+                start_x = undefined;
+                start_y = undefined;
+            }
         }
 
         function resetFinishButton() {
-            var image = document.getElementsByName(finish_y.toString() + finish_x.toString())[0].lastChild;
-            image.setAttribute("src", textures[map[finish_y][finish_x] - 1]);
-            finish_x = undefined;
-            finish_y = undefined;
+            if (finish_x !== undefined) {
+                var image = document.getElementsByName(finish_x.toString() + finish_y.toString())[0].lastChild;
+                image.setAttribute("src", textures[map[finish_x][finish_y] - 1]);
+                finish_x = undefined;
+                finish_y = undefined;
+            }
 
         }
 
@@ -215,6 +221,23 @@
             }
             map = Array(n).fill(null).map(() => Array(m).fill(3))
             return map
+        }
+
+        function getMapSrvc(obj) {
+            var id_of_map = Number(obj.id)
+            $.ajax({
+                url: `/srvc/map/${id_of_map}`,
+                type: 'GET',
+                cache: false,
+                success: function(result) {
+                    if (result) {
+                        console.log(result)
+                    }
+                },
+                error: function() {
+                    alert("No");
+                }
+            });
         }
 
         function createTable(tableData) {
@@ -272,10 +295,10 @@
         <div style="text-align: center;">
             <label>
                 Инициализировать пустую карту
-                <p style="width: 100px;"><input name="n" id="for-generate-map-n" type="number" value="10" max="100"
-                                                min="3"></p>
-                <p style="width: 100px;"><input name="m" id="for-generate-map-m" type="number" value="10" max="100"
-                                                min="3"></p>
+                <input placeholder="Количество строк"  title="Количество строк" name="n" id="for-generate-map-n" type="number" value="10" max="100"
+                       min="3">
+                <input style="margin-top: 10px;" placeholder="Количество столбцов" title="Количество столбцов" name="m" id="for-generate-map-m" type="number" value="10" max="100"
+                       min="3">
             </label>
             <button type="button" class="btn btn-dark"
                     onclick="createTable(generateMap(Number(document.getElementById('for-generate-map-n').value), Number(document.getElementById('for-generate-map-m').value)))">
@@ -288,13 +311,13 @@
             <label>
                 Стандартные карты
                 <div class="btn-group" role="group" aria-label="...">
-                    <button type="button" class="btn btn-dark">1</button>
-                    <button type="button" class="btn btn-dark">2</button>
-                    <button type="button" class="btn btn-dark">3</button>
-                    <button type="button" class="btn btn-dark">4</button>
-                    <button type="button" class="btn btn-dark">5</button>
-                    <button type="button" class="btn btn-dark">6</button>
-                    <button type="button" class="btn btn-dark">7</button>
+                    <button type="button" class="btn btn-dark" id="1" onclick="getMapSrvc(this);">1</button>
+                    <button type="button" class="btn btn-dark" id="2" onclick="getMapSrvc(this);">2</button>
+                    <button type="button" class="btn btn-dark" id="3" onclick="getMapSrvc(this);">3</button>
+                    <button type="button" class="btn btn-dark" id="4" onclick="getMapSrvc(this);">4</button>
+                    <button type="button" class="btn btn-dark" id="5" onclick="getMapSrvc(this);">5</button>
+                    <button type="button" class="btn btn-dark" id="6" onclick="getMapSrvc(this);">6</button>
+                    <button type="button" class="btn btn-dark" id="7" onclick="getMapSrvc(this);">7</button>
                 </div>
             </label>
         </div>
@@ -306,10 +329,10 @@
         <div class="row">
             <div class="col-md-12">
                 <button type="button" class="btn btn-dark" id="import">Загрузить карту</button>
-                <input type="file" id="selectFiles" value="Import"/><br/>
-<!--                <button id="import">Import</button>-->
-<!--                <label for="result"></label><textarea id="result"></textarea>-->
-                <button type="button" class="btn btn-dark" onclick="generateJson()">Скачать карту</button>
+                <input type="file" style="width: 130px;" id="selectFiles" value="Import"/><br/>
+                <!--                <button id="import">Import</button>-->
+                <!--                <label for="result"></label><textarea id="result"></textarea>-->
+                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson()">Скачать карту</button>
             </div>
         </div>
         <div class="row" style="margin-top:10px;">
@@ -354,10 +377,10 @@
                 var result = JSON.parse(e.target.result);
                 map = result.map.data;
                 createTable(map);
-                start_x = result.start.x
-                start_y = result.start.y
-                finish_x = result.finish.x
-                finish_y = result.finish.y
+                start_x = result.start.x - 1
+                start_y = result.start.y - 1
+                finish_x = result.finish.x - 1
+                finish_y = result.finish.y - 1
 
                 old_drawSprite = drawSprite
                 start_obj = document.getElementsByName(`${start_x}${start_y}`)[0]
