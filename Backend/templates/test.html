@@ -230,13 +230,28 @@
                 url: `/srvc/map/${id_of_map}`,
                 type: 'GET',
                 cache: false,
-                success: function(result) {
+                success: function (result) {
                     if (result) {
-                        console.log(result)
+                        result = JSON.parse(result)
+                        map = result.map.data;
+                        createTable(map);
+                        start_x = result.start.x - 1
+                        start_y = result.start.y - 1
+                        finish_x = result.finish.x - 1
+                        finish_y = result.finish.y - 1
+
+                        old_drawSprite = drawSprite
+                        start_obj = document.getElementsByName(`${start_x}${start_y}`)[0]
+                        drawSprite = 7
+                        draw(start_obj, true)
+                        drawSprite = 8
+                        finish_obj = document.getElementsByName(`${finish_x}${finish_y}`)[0]
+                        draw(finish_obj, true)
+                        drawSprite = old_drawSprite
                     }
                 },
-                error: function() {
-                    alert("No");
+                error: function () {
+                    alert("Возникла ошибка! Возможно, такой карты не существует");
                 }
             });
         }
@@ -296,9 +311,11 @@
         <div style="text-align: center;">
             <label>
                 Инициализировать пустую карту
-                <input placeholder="Количество строк"  title="Количество строк" name="n" id="for-generate-map-n" type="number" value="10" max="100"
+                <input placeholder="Количество строк" title="Количество строк" name="n" id="for-generate-map-n"
+                       type="number" value="10" max="100"
                        min="3">
-                <input style="margin-top: 10px;" placeholder="Количество столбцов" title="Количество столбцов" name="m" id="for-generate-map-m" type="number" value="10" max="100"
+                <input style="margin-top: 10px;" placeholder="Количество столбцов" title="Количество столбцов" name="m"
+                       id="for-generate-map-m" type="number" value="10" max="100"
                        min="3">
             </label>
             <button type="button" class="btn btn-dark"
@@ -333,7 +350,9 @@
                 <input type="file" style="width: 130px;" id="selectFiles" value="Import"/><br/>
                 <!--                <button id="import">Import</button>-->
                 <!--                <label for="result"></label><textarea id="result"></textarea>-->
-                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson()">Скачать карту</button>
+                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson()">Скачать
+                    карту
+                </button>
             </div>
         </div>
         <div class="row" style="margin-top:10px;">
@@ -363,7 +382,7 @@
 
     // document.getElementById('selectFiles').style.display = "none"
 
-    document.getElementById('import').onclick = function() {
+    document.getElementById('import').onclick = function () {
         if (document.getElementById('selectFiles').files) {
             var files = document.getElementById('selectFiles').files;
             console.log(files);
