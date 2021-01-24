@@ -257,6 +257,7 @@
         }
 
         function createTable(tableData) {
+            finish_x=undefined;finish_y=undefined;start_x=undefined;start_y=undefined
             var div = document.createElement("div");
             div.setAttribute("class", "col-md-12");
             div.setAttribute("id", "main-map");
@@ -358,7 +359,7 @@
         <div class="row" style="margin-top:10px;">
             <div class="col-md-12">
                 <button type="button" class="btn btn-dark">Запустить марсоход</button>
-                <button type="button" class="btn btn-dark" onclick="createTable(generateMap())">Сбросить карту</button>
+                <button type="button" class="btn btn-dark" onclick="createTable(generateMap());">Сбросить карту</button>
             </div>
         </div>
     </div>
