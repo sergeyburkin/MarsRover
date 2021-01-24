@@ -1,0 +1,380 @@
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.6">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.4/examples/cover/">
+
+    <!-- Bootstrap core CSS -->
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" href="https://getbootstrap.com/docs/4.4/assets/img/favicons/apple-touch-icon.png"
+          sizes="180x180">
+    <link rel="icon" href="https://getbootstrap.com/docs/4.4/assets/img/favicons/favicon-32x32.png" sizes="32x32"
+          type="image/png">
+    <link rel="icon" href="https://getbootstrap.com/docs/4.4/assets/img/favicons/favicon-16x16.png" sizes="16x16"
+          type="image/png">
+    <link rel="manifest" href="https://getbootstrap.com/docs/4.4/assets/img/favicons/manifest.json">
+    <link rel="mask-icon" href="https://getbootstrap.com/docs/4.4/assets/img/favicons/safari-pinned-tab.svg"
+          color="#563d7c">
+    <link rel="icon" href="https://getbootstrap.com/docs/4.4/assets/img/favicons/favicon.ico">
+    <meta name="msapplication-config" content="/docs/4.4/assets/img/favicons/browserconfig.xml">
+    <meta name="theme-color" content="#563d7c">
+    <title></title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Oswald');
+
+        td.main {
+            width: 100px;
+            height: 100px;
+        }
+
+        td.palette {
+            width: 50px;
+            height: 50px;
+        }
+
+        body {
+            font-family: 'Oswald', sans-serif;
+            line-height: 1.4;
+            font-size: 17px;
+        }
+
+        #cell {
+            width: 100px;
+        }
+
+        #cell-palette {
+            width: 50px;
+        }
+
+        .left_col {
+            margin: 20px 20px 20px 20px;
+            padding-left: 150px;
+        }
+
+        .right_col {
+            margin: auto;
+            padding-top: 20px;
+            padding-left: 300px;
+        }
+    </style>
+    <script>
+        var start_x = undefined
+        var start_y = undefined
+        var finish_x = undefined
+        var finish_y = undefined
+        var map = undefined
+        var drawSprite = 2
+        const textures = ["rock.jpg", "stone.png", "sand.jpg", "shadow_sand.jpg", "dirt.png", "shadow_dirt.png", "start.png", "finish.png"]
+
+
+        function findInMap(element) {
+            var counter = 0;
+            map.forEach(function subFind(array) {
+                array.forEach(function find(el) {
+                    if (element === el) {
+                        counter += 1;
+                    }
+                });
+            });
+            return counter
+        }
+
+        function draw(obj, withoutMap) {
+            var image = obj.firstChild;
+            var content = image.src.split("/");
+            image.setAttribute("src", textures[drawSprite - 1]);
+            var i = obj.getAttribute("i")
+            var j = obj.getAttribute("j")
+            if (!withoutMap) map[i][j] = drawSprite
+        }
+
+        function changeImage(obj) {
+            console.log(start_x, start_y, finish_x, finish_y)
+            if (drawSprite === 7) {
+                if (start_y === undefined) {
+                    draw(obj, true)
+                    start_x = Number(obj.getAttribute("i"))
+                    start_y = Number(obj.getAttribute("j"))
+                    console.log(document.getElementById("for-palette"))
+                }
+                // console.log(document.getElementsByClassName("palette-start").length)
+            } else if (drawSprite === 8) {
+                if (finish_x === undefined) {
+                    draw(obj, true)
+                    finish_x = Number(obj.getAttribute("i"))
+                    finish_y = Number(obj.getAttribute("j"))
+                    console.log(document.getElementById("for-palette"))
+
+                }
+                // console.log(document.getElementsByClassName("palette-finish").length)
+            } else {
+                draw(obj)
+            }
+        }
+
+        function downloadObjectAsJson(exportObj, exportName) {
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+            var downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", exportName + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function generateJson() {
+            if (start_x !== undefined && finish_x !== undefined) {
+                var full_map = {
+                    start: {x: start_x + 1, y: start_y + 1},
+                    finish: {x: finish_x + 1, y: finish_y + 1},
+                    map: {"n": map.length, "m": map[0].length, "data": map}
+                }
+
+                downloadObjectAsJson(full_map, "map")
+            } else {
+                alert("Вам нужно указать стартовую и конечную точки");
+            }
+        }
+
+        function resetStartButton() {
+            var image = document.getElementsByName(start_y.toString() + start_x.toString())[0].lastChild;
+            image.setAttribute("src", textures[map[start_y][start_x] - 1]);
+            start_x = undefined;
+            start_y = undefined;
+        }
+
+        function resetFinishButton() {
+            var image = document.getElementsByName(finish_y.toString() + finish_x.toString())[0].lastChild;
+            image.setAttribute("src", textures[map[finish_y][finish_x] - 1]);
+            finish_x = undefined;
+            finish_y = undefined;
+
+        }
+
+        function changeSprite(obj) {
+            drawSprite = Number(obj.id)
+        }
+
+        function createPalette(paletteData) {
+            var counter = 1
+            var div = document.createElement("div");
+            div.setAttribute("class", "col-md-3");
+            div.setAttribute("style", "margin-top: 52px;margin-left:50px;");
+            var table = document.createElement('table');
+            table.setAttribute("border", "1");
+            var tableBody = document.createElement('tbody');
+
+            var row = document.createElement('tr');
+            paletteData.forEach(function (cellData) {
+                var cell = document.createElement('td');
+                cell.setAttribute("id", counter.toString());
+                cell.setAttribute("onclick", "changeSprite(this)");
+                if (cellData === "start.png") {
+                    cell.setAttribute("class", "palette-start");
+                } else if (cellData === "finish.png") {
+                    cell.setAttribute("class", "palette-finish");
+                } else {
+                    cell.setAttribute("class", "palette");
+                }
+                var image = document.createElement('img');
+                image.src = cellData;
+                image.id = "cell-palette";
+                cell.appendChild(image);
+                row.appendChild(cell)
+                counter++;
+            });
+            tableBody.appendChild(row);
+            table.appendChild(tableBody);
+            div.append(table)
+            document.getElementById("for-palette").appendChild(div);
+        }
+
+        function generateMap(n, m) {
+            if (n == null || m == null) {
+                n = 10;
+                m = 10;
+            } else if (n > 100 || m > 100 || n < 3 || m < 3) {
+                n = 10;
+                m = 10;
+                alert("Недопустимое количество строк или столбцов");
+            }
+            map = Array(n).fill(null).map(() => Array(m).fill(3))
+            return map
+        }
+
+        function createTable(tableData) {
+            var div = document.createElement("div");
+            div.setAttribute("class", "col-md-12");
+            div.setAttribute("id", "main-map");
+            var centerForFind = document.getElementById("center-main-map")
+            if (centerForFind) {
+                document.getElementById("for-map").removeChild(centerForFind)
+            }
+
+            div.setAttribute("style", "margin-top:60px;");
+            var table = document.createElement('table');
+            table.setAttribute("border", "1");
+            table.setAttribute("cellspacing", "0");
+            table.setAttribute("cellpadding", "0");
+
+            var tableBody = document.createElement('tbody');
+
+            var i_counter = 0;
+            tableData.forEach(function (rowData) {
+                var j_counter = 0;
+                var row = document.createElement('tr');
+
+                rowData.forEach(function (cellData) {
+                    var cell = document.createElement('td');
+                    cell.setAttribute("i", i_counter.toString())
+                    cell.setAttribute("j", j_counter.toString())
+                    cell.setAttribute("name", i_counter.toString() + j_counter.toString())
+                    cell.setAttribute("class", "main")
+                    cell.setAttribute("onclick", "changeImage(this)")
+                    var image = document.createElement('img');
+                    image.src = textures[cellData - 1];
+                    image.id = "cell";
+                    cell.appendChild(image);
+                    row.appendChild(cell);
+                    j_counter++;
+                });
+                i_counter++
+                tableBody.appendChild(row);
+            });
+
+            table.appendChild(tableBody);
+            div.append(table)
+            var center = document.createElement("center")
+            center.setAttribute("id", "center-main-map")
+            center.appendChild(div)
+            document.getElementById("for-map").appendChild(center);
+        }
+    </script>
+</head>
+<body class="wrap">
+<div class="row d-flex justify-content-center" id="for-palette">
+    <div class="col-md-2" style="margin-left: 20px;margin-top: 20px;">
+        <div style="text-align: center;">
+            <label>
+                Инициализировать пустую карту
+                <p style="width: 100px;"><input name="n" id="for-generate-map-n" type="number" value="10" max="100"
+                                                min="3"></p>
+                <p style="width: 100px;"><input name="m" id="for-generate-map-m" type="number" value="10" max="100"
+                                                min="3"></p>
+            </label>
+            <button type="button" class="btn btn-dark"
+                    onclick="createTable(generateMap(Number(document.getElementById('for-generate-map-n').value), Number(document.getElementById('for-generate-map-m').value)))">
+                Инициализировать
+            </button>
+        </div>
+    </div>
+    <div class="col-md-2" style="margin-left: 20px;margin-top: 32px;">
+        <div style="text-align: center;">
+            <label>
+                Стандартные карты
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-dark">1</button>
+                    <button type="button" class="btn btn-dark">2</button>
+                    <button type="button" class="btn btn-dark">3</button>
+                    <button type="button" class="btn btn-dark">4</button>
+                    <button type="button" class="btn btn-dark">5</button>
+                    <button type="button" class="btn btn-dark">6</button>
+                    <button type="button" class="btn btn-dark">7</button>
+                </div>
+            </label>
+        </div>
+
+    </div>
+
+    <div class="col-md-2" style="margin-left: 32px;margin-top: 35px;">
+
+        <div class="row">
+            <div class="col-md-12">
+                <button type="button" class="btn btn-dark" id="import">Загрузить карту</button>
+                <input type="file" id="selectFiles" value="Import"/><br/>
+<!--                <button id="import">Import</button>-->
+<!--                <label for="result"></label><textarea id="result"></textarea>-->
+                <button type="button" class="btn btn-dark" onclick="generateJson()">Скачать карту</button>
+            </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+            <div class="col-md-12">
+                <button type="button" class="btn btn-dark">Запустить марсоход</button>
+                <button type="button" class="btn btn-dark" onclick="createTable(generateMap())">Сбросить карту</button>
+            </div>
+        </div>
+    </div>
+    <div id="col-md-2">
+        <div class="col-md-12" style="margin-top:52px;">
+            <button type="button" class="btn btn-dark" onclick="resetStartButton()">cбросить стартовую точку</button>
+        </div>
+    </div>
+    <div class="row" style="margin-top:52px;">
+        <div class="col-md-12">
+            <button type="button" class="btn btn-dark" onclick="resetFinishButton()">cбросить конечную точку
+            </button>
+        </div>
+    </div>
+</div>
+<div class="row d-flex justify-content-center" id="for-map"></div>
+<script>
+    generateMap()
+    createTable(map);
+    createPalette(textures);
+
+    // document.getElementById('selectFiles').style.display = "none"
+
+    document.getElementById('import').onclick = function() {
+        if (document.getElementById('selectFiles').files) {
+            var files = document.getElementById('selectFiles').files;
+            console.log(files);
+            if (files.length <= 0) {
+                return false;
+            }
+
+            var fr = new FileReader();
+
+            fr.onload = function (e) {
+                console.log(e);
+                var result = JSON.parse(e.target.result);
+                map = result.map.data;
+                createTable(map);
+                start_x = result.start.x
+                start_y = result.start.y
+                finish_x = result.finish.x
+                finish_y = result.finish.y
+
+                old_drawSprite = drawSprite
+                start_obj = document.getElementsByName(`${start_x}${start_y}`)[0]
+                drawSprite = 7
+                draw(start_obj, true)
+                drawSprite = 8
+                finish_obj = document.getElementsByName(`${finish_x}${finish_y}`)[0]
+                draw(finish_obj, true)
+                drawSprite = old_drawSprite
+            }
+
+            fr.readAsText(files.item(0));
+        } else {
+            document.getElementById('selectFiles').click()
+        }
+    };
+</script>
+<!--<button class="right_col" onclick="console.log(map)">Вывести карту</button>-->
+</body>
+</html>
