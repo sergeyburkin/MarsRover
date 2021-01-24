@@ -208,7 +208,7 @@
             if (n == null || m == null) {
                 n = 10;
                 m = 10;
-            } else if (n > 100 || m > 100) {
+            } else if (n > 100 || m > 100 || n < 3 || m < 3) {
                 n = 10;
                 m = 10;
                 alert("Недопустимое количество строк или столбцов");
@@ -273,9 +273,9 @@
             <label>
                 Инициализировать пустую карту
                 <p style="width: 100px;"><input name="n" id="for-generate-map-n" type="number" value="10" max="100"
-                                                min="5"></p>
+                                                min="3"></p>
                 <p style="width: 100px;"><input name="m" id="for-generate-map-m" type="number" value="10" max="100"
-                                                min="5"></p>
+                                                min="3"></p>
             </label>
             <button type="button" class="btn btn-dark"
                     onclick="createTable(generateMap(Number(document.getElementById('for-generate-map-n').value), Number(document.getElementById('for-generate-map-m').value)))">
