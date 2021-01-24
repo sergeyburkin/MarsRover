@@ -4,6 +4,7 @@ import pickle
 from flask import Flask, request, json, render_template, abort
 
 from storage import db, Map, add_to_db
+from algo import json_data_with_path, get_cost_from_json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mars_rover.db'
@@ -44,23 +45,53 @@ def get_map(map_id):
     return json.dumps(pickle.loads(map_.map_data))
 
 
-@app.route("/srvc/path")
+@app.route("/srvc/path", methods=["POST"])
 def get_path_by_map_id():
-    return "ok"
+    data = request.json
+    if all([data.get("id"), data.get("start"), data.get("finish")]):
+        start = data.get("start")
+        finish = data.get("finish")
+        map_ = Map.query.filter_by(id=data.get("id")).first()
+        if not map_:
+            abort(404)
+        map_ = pickle.loads(map_.map_data)
+        map_["start"] = start
+        map_["finish"] = finish
+        print(map_)
+        print(json_data_with_path(map_))
+        return json.dumps(json_data_with_path(map_))
+    abort(400)
 
 
-@app.route("/srvc/path/map")
+@app.route("/srvc/path/map", methods=["POST"])
 def get_path_by_map():
-    return "ok"
+    data = request.json
+    return json.dumps(json_data_with_path(data))
 
 
 @app.route("/srvc/path/cost")
 def cost_by_map_id():
+    data = request.json
+    if all([data.get("id"), data.get("start"), data.get("finish"), data.get("path")]):
+        start = data.get("start")
+        finish = data.get("finish")
+        map_ = Map.query.filter_by(id=data.get("id")).first()
+        if not map_:
+            abort(404)
+        map_ = pickle.loads(map_.map_data)
+        map_["start"] = start
+        map_["finish"] = finish
+        map_["path"] = data.get("path")
+        days, remaining_energy, spent_energy = get_cost_from_json(map_)
+        return "ok"
+    abort(400)
     return "ok"
 
 
 @app.route("/srvc/path/cost_map", methods=["POST"])
 def cost_by_map():
+    data = request.json
+    days, remaining_energy, spent_energy = get_cost_from_json(data)
     return "ok"
 
 
