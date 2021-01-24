@@ -170,10 +170,11 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
     y_start = json_data['start']['y'] - 1
     x_finish = json_data['finish']['x'] - 1
     y_finish = json_data['finish']['y'] - 1
-    if 'path' in json_data:
-        commands_list = json_data['path']
-    else:
-        commands_list = json_data_with_path(json_data)['path']
+#     if 'path' in json_data:
+#         commands_list = json_data['path']
+#     else:
+#         commands_list = json_data_with_path(json_data)['path']
+    commands_list = json_data_with_path(json_data)['path']
     if commands_list == 'NOT_FOUND':
         return 'NOT_FOUND'
     map_of_nums = json_data['map']['data']
