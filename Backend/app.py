@@ -1,10 +1,11 @@
 import json
 import pickle
+import time
 
 from flask import Flask, request, json, render_template, abort
 
 from storage import db, Map, add_to_db
-from algo import json_data_with_path, get_cost_from_json
+from algo import json_data_with_path, get_cost_from_json, save_map_image_with_path
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mars_rover.db'
@@ -57,8 +58,6 @@ def get_path_by_map_id():
         map_ = pickle.loads(map_.map_data)
         map_["start"] = start
         map_["finish"] = finish
-        print(map_)
-        print(json_data_with_path(map_))
         return json.dumps(json_data_with_path(map_))
     abort(400)
 
@@ -67,6 +66,15 @@ def get_path_by_map_id():
 def get_path_by_map():
     data = request.json
     return json.dumps(json_data_with_path(data))
+
+
+@app.route("/srvc/path/map/img", methods=["POST"])
+def get_path_by_map_img():
+    data = request.json
+    filename = "static/{}.png".format(int(time.time()))
+    success = save_map_image_with_path(json_data_with_path(data), filename) is None
+    print(success)
+    return json.dumps({"success_saving": success, "img_filename": filename})
 
 
 @app.route("/srvc/path/cost")

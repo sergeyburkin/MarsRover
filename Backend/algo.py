@@ -1,6 +1,7 @@
 import json
 import matplotlib.image as pltimg
 import matplotlib.pyplot as plt
+import numpy as np
 from collections import deque
 from PIL import Image
 import numpy as np
@@ -21,16 +22,15 @@ def data_to_path(data, path):
 
 
 # Принимает данные json файла (словарь), возвращает их с добавленным ключом 'path' и списком команд для Марсохода
-def json_data_with_path(json_data,
-                        MAX_CHARGE=100):  # Принимает данный с json файла (словарь),  возвращает их с найденным путем "path"
-
+def json_data_with_path(json_data, MAX_CHARGE=100): # Принимает данный с json файла (словарь),  возвращает их с найденным путем "path"
+    
     ###
-    def get_next(state, data, key, n, m, reverse=False,
-                 CHARGE_SHADOW=1,
-                 CHARGE_SUN=3,
-                 MOVE_ENERGY=3,
-                 HARD_MOVE_ENERGY=6
-                 ):
+    def get_next(state, data, key, n, m, reverse=False, 
+             CHARGE_SHADOW=1,
+             CHARGE_SUN=3,
+             MOVE_ENERGY=3,
+             HARD_MOVE_ENERGY=6
+            ):
         x = state[0]
         y = state[1]
         c = state[2]
@@ -85,7 +85,7 @@ def json_data_with_path(json_data,
             return "DOWN"
         elif key == 4:
             return "CHARGE"
-
+    
     ###
     x_start = json_data['start']['x'] - 1
     y_start = json_data['start']['y'] - 1
@@ -106,9 +106,7 @@ def json_data_with_path(json_data,
             result = []
             while how_got[current_state[0]][current_state[1]][current_state[2]] != -1:
                 result.append(to_string(how_got[current_state[0]][current_state[1]][current_state[2]]))
-                current_state = get_next(current_state, map_mars,
-                                         how_got[current_state[0]][current_state[1]][current_state[2]], n, m,
-                                         reverse=True)
+                current_state = get_next(current_state, map_mars, how_got[current_state[0]][current_state[1]][current_state[2]], n, m, reverse=True)
             json_data['path'] = list(reversed(result))
             return json_data
         for key in range(5):
@@ -125,6 +123,8 @@ def json_data_with_path(json_data,
                 dist[x][y][c] = dist[curX][curY][curC] + 1
                 how_got[x][y][c] = key
                 queue.append(next)
+    json_data['path'] = 'NOT_FOUND'
+    return json_data
 
 
 # По данным json файла (словарю) возвращает изображение (np.array) карты
@@ -153,6 +153,8 @@ def get_map_image(json_data, IMAGE_SHAPE=111):
 
 # По данным json файла (словарю) возвращает изображение (np.array) карты с нарисованным путем Марсохода
 def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
+    
+    
     def box_with_sign(box, sign):
         result = np.zeros_like(box)
         for row in range(box.shape[0]):
@@ -163,6 +165,7 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
                     result[row][column] = sign[row][column]
         return result
 
+
     x_start = json_data['start']['x'] - 1
     y_start = json_data['start']['y'] - 1
     x_finish = json_data['finish']['x'] - 1
@@ -171,9 +174,11 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
         commands_list = json_data['path']
     else:
         commands_list = json_data_with_path(json_data)['path']
+    if commands_list == 'NOT_FOUND':
+        return 'NOT_FOUND'
     map_of_nums = json_data['map']['data']
     map_of_nums = np.array(map_of_nums)
-
+    
     images = {}
     images[1] = pltimg.imread('images/1.png')[:, :, :3]
     images[2] = pltimg.imread('images/2.png')[:, :, :3]
@@ -181,20 +186,20 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
     images[4] = pltimg.imread('images/4.png')[:, :, :3]
     images[5] = pltimg.imread('images/5.png')[:, :, :3]
     images[6] = pltimg.imread('images/6.png')[:, :, :3]
-
+    
     images['UP'] = pltimg.imread('signs/up.png')[:, :, :3]
     images['DOWN'] = pltimg.imread('signs/down.png')[:, :, :3]
     images['LEFT'] = pltimg.imread('signs/left.png')[:, :, :3]
     images['RIGHT'] = pltimg.imread('signs/right.png')[:, :, :3]
     images['CHARGE'] = pltimg.imread('signs/charge.png')[:, :, :3]
     images['FINISH'] = pltimg.imread('signs/finish.png')[:, :, :3]
-
+    
     tmp = [commands_list[0]]
     for command in range(1, len(commands_list)):
-        if not commands_list[command] == commands_list[command - 1] == 'CHARGE':
+        if not commands_list[command] == commands_list[command-1] == 'CHARGE':
             tmp.append(commands_list[command])
     commands_list = tmp
-
+    
     cell_data = {}
     for command in commands_list:
         if not (x_start, y_start) in cell_data:
@@ -209,7 +214,7 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
         elif command == 'RIGHT':
             y_start += 1
     cell_data[(x_finish, y_finish)] = ['FINISH']
-
+    
     result = np.zeros((map_of_nums.shape[0] * IMAGE_SHAPE, map_of_nums.shape[1] * IMAGE_SHAPE, 3))
     for row in range(map_of_nums.shape[0]):
         column_map = np.zeros((IMAGE_SHAPE, 0, 3))
@@ -227,7 +232,7 @@ def get_map_image_with_path(json_data, IMAGE_SHAPE=111):
                 step[i] = np.concatenate((column_map[i], IMG[i]))
             column_map = step
         result[row * IMAGE_SHAPE:(row + 1) * IMAGE_SHAPE, :, :] = column_map
-
+    
     return result
 
 
@@ -239,8 +244,12 @@ def save_map_image(json_data, path_to_save):
 
 # По данным json файла (словарю) сохраняет изображение карты с путем Марсохода в указанный путь
 def save_map_image_with_path(json_data, path_to_save):
-    result = Image.fromarray((get_map_image_with_path(json_data) * 255).astype(np.uint8))
-    result.save(path_to_save)
+    try:
+        result = Image.fromarray((get_map_image_with_path(json_data) * 255).astype(np.uint8))
+        result.save(path_to_save)
+    except Exception as e:
+        print(e)
+        return 'NOT_FOUND'
 
 
 # По заданной высоте и длине генерирует новую карту
@@ -260,14 +269,16 @@ def generate_random_map(height, length):
 
 
 # По данным json файла (словарю) считает количество дней в пути, оставшийся заряд Марсохода и потраченную за весь путь энегию
-def get_cost_from_json(json_data,
-                       MOVE_ENERGY=3,
-                       HARD_MOVE_ENERGY=6,
-                       CHARGE_SUN=3,
-                       CHARGE_SHADOW=1,
-                       MAX_ENERGY=100):
+def get_cost_from_json(json_data, 
+                      MOVE_ENERGY = 3,
+                      HARD_MOVE_ENERGY = 6,
+                      CHARGE_SUN = 3,
+                      CHARGE_SHADOW = 1,
+                      MAX_ENERGY = 100):
+    
     def calc(field, n, m, start_x, start_y, finish_x, finish_y, path, energy=MAX_ENERGY):
-
+    
+    
         def get_move(direction):
             if direction == "RIGHT":
                 return 0, 1
@@ -279,6 +290,7 @@ def get_cost_from_json(json_data,
                 return -1, 0
             return 0, 0
 
+    
         def energy_change(type, charging=False):
             assert type > 2
             if charging:
@@ -292,6 +304,8 @@ def get_cost_from_json(json_data,
             # type == 5 or type == 6
             return MOVE_ENERGY
 
+        if path == 'NOT_FOUND':
+            return 'NOT_FOUND'
         x = start_x
         y = start_y
         spent_energy = 0

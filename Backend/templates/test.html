@@ -140,15 +140,18 @@
             downloadAnchorNode.remove();
         }
 
-        function generateJson() {
+        function generateJson(download) {
             if (start_x !== undefined && finish_x !== undefined) {
                 var full_map = {
                     start: {x: start_x + 1, y: start_y + 1},
                     finish: {x: finish_x + 1, y: finish_y + 1},
                     map: {"n": map.length, "m": map[0].length, "data": map}
                 }
-
-                downloadObjectAsJson(full_map, "map")
+                if (download === null) {
+                    downloadObjectAsJson(full_map, "map")
+                } else {
+                    return full_map
+                }
             } else {
                 alert("Вам нужно указать стартовую и конечную точки");
             }
@@ -256,8 +259,53 @@
             });
         }
 
+        function getImageOfMap() {
+            if (start_x !== undefined && finish_x !== undefined) {
+                $.ajax({
+                    url: `/srvc/path/map/img`,
+                    type: 'POST',
+                    data:
+                        JSON.stringify(generateJson(false))
+                    ,
+                    dataType: "json",
+                    contentType: 'application/json; charset=utf-8',
+                    cache: false,
+                    success: function (result) {
+                        let json_result = result
+                        if (json_result.success_saving) {
+                            let image = document.createElement("img")
+                            image.setAttribute("src", json_result.img_filename)
+                            let tableDiv = document.getElementById("main-map")
+                            let centerDiv = document.getElementById("center-main-map")
+                            centerDiv.removeChild(tableDiv)
+
+                            var div = document.createElement("div");
+                            div.setAttribute("class", "col-md-12");
+                            div.setAttribute("id", "main-map-image");
+                            div.setAttribute("style", "margin-top:60px;");
+
+                            div.appendChild(image)
+                            centerDiv.appendChild(div)
+
+                        } else {
+                            alert("Не удалось построить маршрут")
+                        }
+
+                    },
+                    error: function () {
+                        alert("Возникла ошибка! Возможно, такой карты не существует");
+                    }
+                });
+            } else {
+                alert("Вам нужно указать стартовую и конечную точки");
+            }
+        }
+
         function createTable(tableData) {
-            finish_x=undefined;finish_y=undefined;start_x=undefined;start_y=undefined
+            finish_x = undefined;
+            finish_y = undefined;
+            start_x = undefined;
+            start_y = undefined
             var div = document.createElement("div");
             div.setAttribute("class", "col-md-12");
             div.setAttribute("id", "main-map");
@@ -351,14 +399,14 @@
                 <input type="file" style="width: 130px;" id="selectFiles" value="Import"/><br/>
                 <!--                <button id="import">Import</button>-->
                 <!--                <label for="result"></label><textarea id="result"></textarea>-->
-                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson()">Скачать
+                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson(null)">Скачать
                     карту
                 </button>
             </div>
         </div>
         <div class="row" style="margin-top:10px;">
             <div class="col-md-12">
-                <button type="button" class="btn btn-dark">Запустить марсоход</button>
+                <button type="button" class="btn btn-dark" onclick="getImageOfMap()">Запустить марсоход</button>
                 <button type="button" class="btn btn-dark" onclick="createTable(generateMap());">Сбросить карту</button>
             </div>
         </div>
