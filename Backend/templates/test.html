@@ -259,6 +259,38 @@
             });
         }
 
+
+        function getCost(objectMap) {
+            $.ajax({
+                url: `/srvc/path/cost_map`,
+                type: 'POST',
+                data:
+                    JSON.stringify(objectMap)
+                ,
+                dataType: "json",
+                contentType: 'application/json; charset=utf-8',
+                cache: false,
+                success: function (result) {
+                    console.log(result)
+
+                    var forCost = document.getElementById("for-cost")
+                    forCost.textContent = `Потраченные дни: ${result.days} | Оставшаяся энергия: ${result.remaining_energy} | Потраченная энергия: ${result.spent_energy}`
+
+                },
+                error: function () {
+                    alert("Возникла ошибка! Маршрут не найден!");
+                }
+            });
+        }
+
+
+        // function getPath(objectMap){
+        //     var final_result = ""
+        //
+        //     return final_result
+        // }
+
+
         function getImageOfMap() {
             if (start_x !== undefined && finish_x !== undefined) {
                 $.ajax({
@@ -283,10 +315,9 @@
                             div.setAttribute("class", "col-md-12");
                             div.setAttribute("id", "main-map-image");
                             div.setAttribute("style", "margin-top:60px;");
-
-                            div.appendChild(image)
+                            getCost(generateJson(false));
+                            div.appendChild(image);
                             centerDiv.appendChild(div)
-
                         } else {
                             alert("Не удалось построить маршрут")
                         }
@@ -307,6 +338,8 @@
             start_x = undefined;
             start_y = undefined
             var div = document.createElement("div");
+            var forCost = document.getElementById("for-cost")
+            forCost.textContent = ""
             div.setAttribute("class", "col-md-12");
             div.setAttribute("id", "main-map");
             var centerForFind = document.getElementById("center-main-map")
@@ -399,7 +432,8 @@
                 <input type="file" style="width: 130px;" id="selectFiles" value="Import"/><br/>
                 <!--                <button id="import">Import</button>-->
                 <!--                <label for="result"></label><textarea id="result"></textarea>-->
-                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson(null)">Скачать
+                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson(null)">
+                    Скачать
                     карту
                 </button>
             </div>
@@ -423,7 +457,12 @@
         </div>
     </div>
 </div>
-<div class="row d-flex justify-content-center" id="for-map"></div>
+<div class="row d-flex justify-content-center" style="margin-top: 50px; font-size: 32px;" id="div-for-cost">
+    <center><p id="for-cost"></p></center>
+</div>
+<div class="row d-flex justify-content-center" id="for-map">
+
+</div>
 <script>
     generateMap()
     createTable(map);

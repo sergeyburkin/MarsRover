@@ -91,16 +91,17 @@ def cost_by_map_id():
         map_["finish"] = finish
         map_["path"] = data.get("path")
         days, remaining_energy, spent_energy = get_cost_from_json(map_)
-        return "ok"
+        return json.dumps({"days": days, "remaining_energy": remaining_energy, "spent_energy": spent_energy})
     abort(400)
-    return "ok"
 
 
 @app.route("/srvc/path/cost_map", methods=["POST"])
 def cost_by_map():
     data = request.json
+    if not data.get("path"):
+        data = json_data_with_path(data)
     days, remaining_energy, spent_energy = get_cost_from_json(data)
-    return "ok"
+    return json.dumps({"days": days, "remaining_energy": remaining_energy, "spent_energy": spent_energy})
 
 
 @app.route("/srvc/map/upload/<int:map_id>", methods=["POST"])
