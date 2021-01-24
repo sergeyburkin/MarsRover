@@ -44,7 +44,7 @@ def get_map(map_id):
     return json.dumps(pickle.loads(map_.map_data))
 
 
-@app.route("/srvc/path/")
+@app.route("/srvc/path")
 def get_path_by_map_id():
     return "ok"
 
