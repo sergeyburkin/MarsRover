@@ -125,16 +125,16 @@
             if (drawSprite === 7) {
                 if (start_y === undefined) {
                     draw(obj, true)
-                    start_x = Number(obj.getAttribute("j"))
-                    start_y = Number(obj.getAttribute("i"))
+                    start_x = Number(obj.getAttribute("i"))
+                    start_y = Number(obj.getAttribute("j"))
                     console.log(document.getElementById("for-palette"))
                 }
                 // console.log(document.getElementsByClassName("palette-start").length)
             } else if (drawSprite === 8) {
                 if (finish_x === undefined) {
                     draw(obj, true)
-                    finish_x = Number(obj.getAttribute("j"))
-                    finish_y = Number(obj.getAttribute("i"))
+                    finish_x = Number(obj.getAttribute("i"))
+                    finish_y = Number(obj.getAttribute("j"))
                     console.log(document.getElementById("for-palette"))
 
                 }
@@ -157,8 +157,8 @@
         function generateJson() {
             if (start_x !== undefined && finish_x !== undefined) {
                 var full_map = {
-                    start: {x: start_x, y: start_y},
-                    finish: {x: finish_x, y: finish_y},
+                    start: {x: start_x + 1, y: start_y + 1},
+                    finish: {x: finish_x + 1, y: finish_y + 1},
                     map: {"n": map.length, "m": map[0].length, "data": map}
                 }
 
@@ -377,11 +377,11 @@
                 finish_y = result.finish.y
 
                 old_drawSprite = drawSprite
-                start_obj = document.getElementsByName(`${start_y}${start_x}`)[0]
+                start_obj = document.getElementsByName(`${start_x}${start_y}`)[0]
                 drawSprite = 7
                 draw(start_obj, true)
                 drawSprite = 8
-                finish_obj = document.getElementsByName(`${finish_y}${finish_x}`)[0]
+                finish_obj = document.getElementsByName(`${finish_x}${finish_y}`)[0]
                 draw(finish_obj, true)
                 drawSprite = old_drawSprite
             }
