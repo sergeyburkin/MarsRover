@@ -1,10 +1,17 @@
 import json
 import pickle
+import time
+import base64
+import os
+from io import BytesIO
+
 
 from flask import Flask, request, json, render_template, abort
+import numpy as np
+from PIL import Image
 
 from storage import db, Map, add_to_db
-from algo import json_data_with_path, get_cost_from_json
+from algo import json_data_with_path, get_cost_from_json, get_map_image_with_path
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mars_rover.db'
@@ -57,8 +64,6 @@ def get_path_by_map_id():
         map_ = pickle.loads(map_.map_data)
         map_["start"] = start
         map_["finish"] = finish
-        print(map_)
-        print(json_data_with_path(map_))
         return json.dumps(json_data_with_path(map_))
     abort(400)
 
@@ -67,6 +72,20 @@ def get_path_by_map_id():
 def get_path_by_map():
     data = request.json
     return json.dumps(json_data_with_path(data))
+
+
+@app.route("/srvc/path/map/img", methods=["POST"])
+def get_path_by_map_img():
+    data = request.json
+    try:
+        data_out = Image.fromarray((get_map_image_with_path(data) * 255).astype(np.uint8))
+        buffered = BytesIO()
+        data_out.save(buffered, format="PNG")
+        encoded = base64.b64encode(buffered.getvalue())
+    except Exception as e:
+        print(e)
+        encoded = ""
+    return json.dumps({"success_saving": encoded != "", "img_content": encoded.decode("utf-8")})
 
 
 @app.route("/srvc/path/cost")
@@ -83,16 +102,17 @@ def cost_by_map_id():
         map_["finish"] = finish
         map_["path"] = data.get("path")
         days, remaining_energy, spent_energy = get_cost_from_json(map_)
-        return "ok"
+        return json.dumps({"days": days, "remaining_energy": remaining_energy, "spent_energy": spent_energy})
     abort(400)
-    return "ok"
 
 
 @app.route("/srvc/path/cost_map", methods=["POST"])
 def cost_by_map():
     data = request.json
+    if not data.get("path"):
+        data = json_data_with_path(data)
     days, remaining_energy, spent_energy = get_cost_from_json(data)
-    return "ok"
+    return json.dumps({"days": days, "remaining_energy": remaining_energy, "spent_energy": spent_energy})
 
 
 @app.route("/srvc/map/upload/<int:map_id>", methods=["POST"])
