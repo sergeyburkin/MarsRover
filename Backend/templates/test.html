@@ -244,7 +244,6 @@
                         finish_x = result.finish.x - 1
                         finish_y = result.finish.y - 1
 
-                        getPathForMap()
                         old_drawSprite = drawSprite
                         start_obj = document.getElementsByName(`${start_x}${start_y}`)[0]
                         drawSprite = 7
@@ -332,6 +331,8 @@
                             let tableDiv = document.getElementById("main-map")
                             let centerDiv = document.getElementById("center-main-map")
                             centerDiv.removeChild(tableDiv)
+
+                            getPathForMap()
 
                             var div = document.createElement("div");
                             div.setAttribute("class", "col-md-12");
