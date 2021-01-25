@@ -306,7 +306,7 @@
                         let json_result = result
                         if (json_result.success_saving) {
                             let image = document.createElement("img")
-                            image.setAttribute("src", json_result.img_filename)
+                            image.setAttribute("src", `data:image/png;base64,${json_result.img_content}`)
                             let tableDiv = document.getElementById("main-map")
                             let centerDiv = document.getElementById("center-main-map")
                             centerDiv.removeChild(tableDiv)

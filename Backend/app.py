@@ -1,11 +1,17 @@
 import json
 import pickle
 import time
+import base64
+import os
+from io import BytesIO
+
 
 from flask import Flask, request, json, render_template, abort
+import numpy as np
+from PIL import Image
 
 from storage import db, Map, add_to_db
-from algo import json_data_with_path, get_cost_from_json, save_map_image_with_path
+from algo import json_data_with_path, get_cost_from_json, get_map_image_with_path
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mars_rover.db'
@@ -71,10 +77,15 @@ def get_path_by_map():
 @app.route("/srvc/path/map/img", methods=["POST"])
 def get_path_by_map_img():
     data = request.json
-    filename = "static/{}.png".format(int(time.time()))
-    success = save_map_image_with_path(json_data_with_path(data), filename) is None
-    print(success)
-    return json.dumps({"success_saving": success, "img_filename": filename})
+    try:
+        data_out = Image.fromarray((get_map_image_with_path(data) * 255).astype(np.uint8))
+        buffered = BytesIO()
+        data_out.save(buffered, format="PNG")
+        encoded = base64.b64encode(buffered.getvalue())
+    except Exception as e:
+        print(e)
+        encoded = ""
+    return json.dumps({"success_saving": encoded != "", "img_content": encoded.decode("utf-8")})
 
 
 @app.route("/srvc/path/cost")
