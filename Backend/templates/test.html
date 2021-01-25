@@ -80,6 +80,7 @@
         var finish_x = undefined
         var finish_y = undefined
         var map = undefined
+        var map_with_path = undefined
         var drawSprite = 2
         const textures = ["/static/1.png", "/static/2.png", "/static/3.png", "/static/4.png", "/static/5.png",
             "/static/6.png", "/static/start.png", "/static/finish.png"]
@@ -243,6 +244,7 @@
                         finish_x = result.finish.x - 1
                         finish_y = result.finish.y - 1
 
+                        getPathForMap()
                         old_drawSprite = drawSprite
                         start_obj = document.getElementsByName(`${start_x}${start_y}`)[0]
                         drawSprite = 7
@@ -274,7 +276,7 @@
                     console.log(result)
 
                     var forCost = document.getElementById("for-cost")
-                    forCost.textContent = `Потраченные дни: ${result.days} | Оставшаяся энергия: ${result.remaining_energy} | Потраченная энергия: ${result.spent_energy}`
+                    forCost.textContent = `Количество дней: ${result.days} | Оставшаяся энергия: ${result.remaining_energy} | Расход энергии: ${result.spent_energy}`
 
                 },
                 error: function () {
@@ -289,6 +291,26 @@
         //
         //     return final_result
         // }
+
+
+        function getPathForMap() {
+            $.ajax({
+                url: `/srvc/path/map`,
+                type: 'POST',
+                data:
+                    JSON.stringify(generateJson(false))
+                ,
+                dataType: "json",
+                contentType: 'application/json; charset=utf-8',
+                cache: false,
+                success: function (result) {
+                    map_with_path = result
+                },
+                error: function () {
+                    alert("Возникла ошибка при запросе пути!");
+                }
+            });
+        }
 
 
         function getImageOfMap() {
@@ -337,6 +359,7 @@
             finish_y = undefined;
             start_x = undefined;
             start_y = undefined
+            map_with_path = undefined
             var div = document.createElement("div");
             var forCost = document.getElementById("for-cost")
             forCost.textContent = ""
@@ -385,6 +408,16 @@
             center.appendChild(div)
             document.getElementById("for-map").appendChild(center);
         }
+
+        function download() {
+            console.log(map_with_path)
+            console.log(map)
+            if (map_with_path !== undefined) {
+                downloadObjectAsJson(map_with_path, 'map-with-path.json')
+            } else {
+                generateJson(null)
+            }
+        }
     </script>
 </head>
 <body class="wrap">
@@ -432,7 +465,7 @@
                 <input type="file" style="width: 130px;" id="selectFiles" value="Import"/><br/>
                 <!--                <button id="import">Import</button>-->
                 <!--                <label for="result"></label><textarea id="result"></textarea>-->
-                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="generateJson(null)">
+                <button type="button" style="margin-top: 10px;" class="btn btn-dark" onclick="download()">
                     Скачать
                     карту
                 </button>
